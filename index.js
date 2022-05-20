@@ -53,10 +53,14 @@ async function run() {
         const booking = req.body;
         //For control duplicate booking in same day
         const query = {treatment: booking.treatment, date: booking.date, patient: booking.patient}
+        const exists = await bookingsCollection.findOne(query);
+        if(exists){
+          return res.send({success : false, booking : exists})
+        }
         //insert data in booking collection
         const result = await bookingsCollection.insertOne(booking);
         //send data in database
-        res.send(result);
+       return res.send({success : true, result});
       })
 
   } finally {
