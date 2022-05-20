@@ -19,7 +19,46 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    console.log('database connected')
+    const servicesCollection = client
+      .db("doctor_chamber")
+      .collection("docter_services");
+
+    const bookingsCollection = client
+      .db("doctor_chamber")
+      .collection("booking");
+
+
+      //Create API for all data get
+      app.get('/services', async(req, res) =>{
+          const query = {};
+          const cursor = servicesCollection.find(query);
+          const services = await cursor.toArray();
+          res.send(services);
+      });
+
+      /**
+       * API Naming convention
+       * app.get('/booking') //get all bookings in this collection. or more than one or by filter
+       * app.get("/booking/:id") // get specific booking
+       * app.post("/booking") // add a new booking
+       * app.patch("/booking/:id") // update one
+       * app.delete("/booking?:id") // delete a booking
+       */
+
+      /*********************************
+       * For adding data in database
+       *********************************/
+      app.post('/booking', async(req, res) => {
+        //read data from clint side
+        const booking = req.body;
+        //For control duplicate booking in same day
+        const query = {treatment: booking.treatment, date: booking.date, patient: booking.patient}
+        //insert data in booking collection
+        const result = await bookingsCollection.insertOne(booking);
+        //send data in database
+        res.send(result);
+      })
+
   } finally {
   }
 }
