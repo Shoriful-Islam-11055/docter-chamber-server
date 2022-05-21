@@ -61,6 +61,34 @@ async function run() {
         const result = await bookingsCollection.insertOne(booking);
         //send data in database
        return res.send({success : true, result});
+      });
+
+      /*************************************
+       * Find available time slots for a day
+       *************************************/
+      app.get('/available', async(req, res) =>{
+        const date = req.query.date;
+
+        //step-1: get all services. output: [{}, {}, {}, {}..... ALL] 
+        const services = await servicesCollection.find().toArray();
+        
+        //step-2: get the booking of that day. output: [{}, {}, {}, {}.....]
+        const query = {date : date};
+        const bookings = await bookingsCollection.find(query).toArray();
+        
+
+        //step-3: For each service, find booking for that day. output: [{}, {}, {}]
+        services.forEach(service =>{
+          //step-4: find booking for that service
+          const serviceBooking = bookings.filter(b => b.treatment === service.name);
+           //step-5: select slots for that service booking ["", "", ""...]
+          const booked = serviceBooking.map(s=>s.slot);
+          //step-6: select those slots that are not in booked ;  
+          const available = service.slots.filter(s => !booked.includes(s));
+          service.slots = available;
+        })
+        res.send(services)
+
       })
 
   } finally {
