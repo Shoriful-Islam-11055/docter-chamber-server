@@ -91,6 +91,17 @@ async function run() {
 
       })
 
+      /*************************************
+       * get appoint data thats people appoints
+       *************************************/
+      app.get('/booking', async(req, res) => {
+        const patient = req.query.patient;
+        const query = {patient : patient}
+        const bookings = await bookingsCollection.find(query).toArray();
+        res.send(bookings);
+
+      })
+      
   } finally {
   }
 }
