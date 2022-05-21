@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
@@ -27,6 +28,10 @@ async function run() {
       .db("doctor_chamber")
       .collection("booking");
 
+    const usersCollection = client
+      .db("doctor_chamber")
+      .collection("users");
+
 
       //Create API for all data get
       app.get('/services', async(req, res) =>{
@@ -35,6 +40,22 @@ async function run() {
           const services = await cursor.toArray();
           res.send(services);
       });
+
+      /*************************************
+       * get user from clint and send backend database
+       *************************************/
+       app.put('/user/:email', async(req, res) => {
+        const email = req.params.email;
+        const user = req.body;
+        const filter = {email : email}
+        const options = {upsert : true};
+        const updateDoc = {
+          $set : user,
+        };
+        const result = await usersCollection.updateOne(filter, updateDoc, options);
+        const token = jwt.sign({email : email}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '24h'})
+        res.send({result, token});
+      })
 
       /**
        * API Naming convention
@@ -101,6 +122,8 @@ async function run() {
         res.send(bookings);
 
       })
+
+       
       
   } finally {
   }
