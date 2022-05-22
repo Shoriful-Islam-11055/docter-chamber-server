@@ -17,6 +17,8 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+
+
 //verification jwt token
 function verifyJWT(req, res, next){
   const authHeader = req.headers.authorization;
@@ -53,6 +55,21 @@ async function run() {
     const doctorCollection = client
       .db("doctor_chamber")
       .collection("doctors");
+
+
+     /****************verify jwtAdmin *********************/
+
+      const verifyAdmin = async(req, res, next) =>{
+        // const email = req.params.email;
+        const requester = req.decoded.email;
+        const requesterAccount = await usersCollection.findOne({email: requester});
+        if(requesterAccount.role ==='admin'){
+          next();
+        }
+        else{
+          res.status(403).send({message: 'Forbidden access'});
+        }
+      }
 
 
       //Create API for all data get
@@ -112,21 +129,16 @@ async function run() {
        /*************************************
        * Make Admin between users
        *************************************/
-        app.put('/user/admin/:email',verifyJWT, async(req, res) => {
+        app.put('/user/admin/:email',verifyJWT,verifyAdmin, async(req, res) => {
           const email = req.params.email;
-          const requester = req.decoded.email;
-          const requesterAccount = await usersCollection.findOne({email: requester});
-
-          if(requesterAccount.role ==='admin'){
-            const filter = {email : email}
+          // const requester = req.decoded.email;
+          // const requesterAccount = await usersCollection.findOne({email: requester});
+          const filter = {email : email}
           const updateDoc = {
             $set : {role : 'admin'},
           };
           const result = await usersCollection.updateOne(filter, updateDoc);
           res.send(result);
-          }else{
-            return res.status(403).send({message: 'Forbidden access'});
-          }
           
         })
 
@@ -206,7 +218,7 @@ async function run() {
        /*************************************
        * doctor add with image
        *************************************/
-      app.post('/doctor', async(req, res) =>{
+      app.post('/doctor', verifyJWT, verifyAdmin, async(req, res) =>{
           const doctor = req.body;
           const result = await doctorCollection.insertOne(doctor);
           res.send(result);
