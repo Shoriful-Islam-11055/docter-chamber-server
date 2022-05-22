@@ -59,6 +59,16 @@ async function run() {
           res.send(services);
       });
 
+      /*************************************
+       * For find all dada without slots from database
+       *************************************/
+       app.get('/specialty', async(req, res) =>{
+        const query = {};
+        const specialty = await servicesCollection.find(query).project({name :1}).toArray();
+        res.send(specialty);
+    });
+
+
        /*************************************
        * For find all user from database
        *************************************/
