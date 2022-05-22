@@ -50,6 +50,10 @@ async function run() {
       .db("doctor_chamber")
       .collection("users");
 
+    const doctorCollection = client
+      .db("doctor_chamber")
+      .collection("doctors");
+
 
       //Create API for all data get
       app.get('/services', async(req, res) =>{
@@ -195,9 +199,18 @@ async function run() {
         }
         else{
           return res.status(403).send({message: 'forbidden access'});
-        }
-        
+        }  
       })   
+
+     
+       /*************************************
+       * doctor add with image
+       *************************************/
+      app.post('/doctor', async(req, res) =>{
+          const doctor = req.body;
+          const result = await doctorCollection.insertOne(doctor);
+          res.send(result);
+      });
       
   } finally {
   }
