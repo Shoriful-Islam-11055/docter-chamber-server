@@ -98,6 +98,14 @@ async function run() {
         res.send(users);
       })
 
+       /*************************************
+       * For find all doctors from Added doctors
+       *************************************/
+      app.get('/doctor', verifyJWT,verifyAdmin, async(req, res) =>{
+        const doctors = await doctorCollection.find().toArray();
+        res.send(doctors);
+      })
+
 
       /*************************************
        * get user from clint and send backend database
